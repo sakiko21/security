@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>投稿画面</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+  <header>
+    <div class="header">
+      <div class="header-left">
+        <a href="/">トップページ</a>
+      </div>
+      <div class="header-right">
+        <a onClick="logout()" style="cursor:pointer">ログアウト</a>
+      </div>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+      <form method="post" action="/api/post">
+        <label for="category">カテゴリ</label>
+        <select id="category" name="category" required>
+          <option value="">選択してください</option>
+          <!-- HTML/CSS, JavaScript, 案件獲得, 転職活動 -->
+          <option value="HTML/CSS">HTML/CSS</option>
+          <option value="JavaScript">JavaScript</option>
+          <option value="案件獲得">案件獲得</option>
+          <option value="転職活動">転職活動</option>
+        </select>
+
+        <label for="content">投稿内容</label>
+        <textarea id="content" name="content" required></textarea>
+
+        <input type="hidden" id="session" name="session">
+
+        <button type="submit">投稿</button>
+      </form>
+      <!-- 投稿した内容の一覧を表示 -->
+      <div id="posts"></div>
+
+    </div>
+  </main>
+  <script>
+    const session = document.getElementById("session");
+    session.value = document.cookie.split("session_key=")[1];
+    fetch("/api/posts")
+      .then(res => res.json())
+      .then(posts => {
+        const postsElement = document.getElementById("posts");
+        posts.forEach(post => {
+          console.log(post);
+          const postElement = document.createElement("div");
+          postElement.innerHTML = `
+            <div class="post">
+              <div class="post-left">
+                <h3 class="post-user">${post.user_name}</h3>
+                <small class="post-email">${post.user_email}</small><br />
+                <small class="post-phone">${post.user_phone}</small><br />
+                <small class="post-date">${post.createdat}</small>
+              </div>
+              <div class="post-right">
+                <br />
+                <strong class="post-category">カテゴリ: ${post.category}</strong><br /><br />
+                <strong>投稿内容</strong>
+                <div class="post-content">${post.content}</div>
+              </div>
+            </div>
+          `;
+          postsElement.appendChild(postElement);
+        });
+      });
+    function logout() {
+      document.cookie = 'session_key=; max-age=0;'
+      location.href = "/";
+    }
+  </script>
+  <style>
+    /* post の中身をおしゃれに装飾 */
+    .post {
+      display: flex;
+      justify-content: flex-start;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+
+    /* post-right の中身をおしゃれに装飾 */
+    .post-right {}
+
+    /* post-left の中身をおしゃれに装飾 */
+    .post-left {
+      flex-basis: 50%;
+
+    }
+  </style>
+</body>
+
+</html>

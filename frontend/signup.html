@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign Up</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+  <header>
+    <div class="header">
+      <div class="header-left">
+        <a href="/">トップページ</a>
+      </div>
+      <div class="header-right">
+        <a href="/login.html">ログイン</a>
+        <a href="/signup.html">新規登録</a>
+      </div>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+      <form action="/api/signup" method="post">
+        <h1>新規会員登録</h1>
+        <label for="name">お名前<span class="required">*</span></label>
+        <input type="text" id="name" name="name" required>
+
+        <label for="email">メールアドレス<span class="required">*</span></label>
+        <input type="email" id="email" name="email" required>
+
+        <label for="phone">電話番号<span class="required">*</span></label>
+        <input type="tel" id="phone" name="phone" required>
+
+        <label for="password">パスワード<span class="required">*</span></label>
+        <input type="password" id="password" name="password" required>
+
+        <label for="confirm_password">パスワードの確認<span class="required">*</span></label>
+        <input type="password" id="confirm_password" name="confirm_password" required>
+
+        <button type="submit">登録</button>
+      </form>
+    </div>
+  </main>
+</body>
+
+</html>
