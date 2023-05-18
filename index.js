@@ -8,14 +8,21 @@ import jwt from "jsonwebtoken";
 
 const app = express();
 const PORT = 3000;
-const FRONT_END_PATH = "./frontend";
+const FRONT_END_PATH = "./views";
 TechGeekDB.init();
 // ミドルウェアの定義
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+app.set("view engine", "ejs");
 
-app.get("/post.html", (req, res, next) => {
+// 全てのCORSリクエストを許可する
+// app.use((req, res, next) => {
+//   res.header("Access-Control-Allow-Origin", "*");
+//   next();
+// });
+
+app.get("/post", async (req, res, next) => {
   // ログインチェック
   console.log("url", req.url);
   const token = req.cookies.session_key;
@@ -25,8 +32,17 @@ app.get("/post.html", (req, res, next) => {
   try {
     const user = jwt.verify(token, "techgeek");
     req.user = user;
-    next();
+    const { category } = req.query;
+    console.log("body:", req.body, category)
+    let posts;
+    if (category) {
+      posts = await TechGeekDB.getPostsByCategory(user.email, category);
+    } else {
+      posts = await TechGeekDB.getPosts(user.email);
+    }
+    return res.render("post.ejs", { user, posts });
   } catch (err) {
+    console.log(err);
     return res.redirect("/login.html");
   }
 });
@@ -38,7 +54,7 @@ app.post("/api/signup", async (req, res) => {
   const user = await TechGeekDB.createUser(name, phone, email, hasedPassword);
   const token = jwt.sign(user, "techgeek", { expiresIn: '1d' });
   res.cookie("session_key", token, { maxAge: 1000 * 60 * 60 * 24 });
-  return res.redirect("/post.html");
+  return res.redirect("/post");
 });
 app.post("/api/login", async (req, res) => {
   const { email, password } = req.body;
@@ -56,7 +72,7 @@ app.post("/api/login", async (req, res) => {
 
   const token = jwt.sign(user, "techgeek", { expiresIn: '1d' });
   res.cookie("session_key", token, { maxAge: 1000 * 60 * 60 * 24 });
-  return res.redirect("/post.html");
+  return res.redirect("/post");
 });
 
 app.post("/api/post", async (req, res) => {
@@ -67,10 +83,17 @@ app.post("/api/post", async (req, res) => {
   console.log(user);
   const post = await TechGeekDB.createPost(category, content, user.name, user.phone, user.email);
   console.log({ post });
-  return res.redirect("/post.html");
+  return res.redirect("/post");
 });
 app.get("/api/posts", async (req, res) => {
-  const posts = await TechGeekDB.getPosts();
+  console.log("/api/posts");
+  const { category } = req.query;
+  let posts;
+  if (category) {
+    posts = await TechGeekDB.getPostsByCategory(category);
+  } else {
+    posts = await TechGeekDB.getAllPosts();
+  }
   return res.status(200).json(posts);
 });
 

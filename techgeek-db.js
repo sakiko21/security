@@ -117,12 +117,13 @@ export const TechGeekDB = {
     const result = await this.__query(query, [category, content, user_name, user_phone, user_email]);
     return result.rows[0];
   },
-  getPosts: async function () {
+  getPosts: async function (user_email) {
     await this.ready;
     const query = `
       SELECT * FROM posts
+      WHERE user_email = $1
     `;
-    const result = await this.__query(query);
+    const result = await this.__query(query, [user_email]);
     return result.rows;
   },
   getPost: async function (id) {
@@ -133,6 +134,24 @@ export const TechGeekDB = {
     `;
     const result = await this.__query(query, [id]);
     return result.rows[0];
+  },
+  getAllPosts: async function () {
+    await this.ready;
+    const query = `
+      SELECT * FROM posts
+    `;
+    const result = await this.__query(query);
+    return result.rows;
+  },
+  getPostsByCategory: async function (user_email, category) {
+    await this.ready;
+    const query = `
+      SELECT * FROM posts
+      WHERE category = '${category}' AND user_email = '${user_email}'
+    `;
+    console.log(query);
+    const result = await this.__query(query);
+    return result.rows;
   },
   updatePost: async function (id, category, content, user_name, user_phone, user_email) {
     await this.ready;
