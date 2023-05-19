@@ -23,7 +23,7 @@
   <main>
     <div class="container">
       <h1 style="text-align: center;">学習メモ一覧</h1>
-      <form action=" /post" method="get">
+      <form action="/post" method="get">
         <h3>絞り込み</h3>
         <label for="search_category">カテゴリ</label>
         <select id="search_category" name="category">
@@ -50,7 +50,6 @@
         <label for="content">投稿内容</label>
         <textarea id="content" name="content" required></textarea>
 
-        <input type="hidden" id="session" name="session">
 
         <button type="submit">投稿</button>
       </form>
@@ -86,8 +85,6 @@
     </div>
   </main>
   <script>
-    const session = document.getElementById("session");
-    session.value = document.cookie.split("session_key=")[1];
     const searchParams = new URLSearchParams(window.location.search);
     const category = searchParams.get("category");
     const searchCategoryElement = document.getElementById("search_category");

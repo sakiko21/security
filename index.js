@@ -19,6 +19,7 @@ app.set("view engine", "ejs");
 // 全てのCORSリクエストを許可する
 // app.use((req, res, next) => {
 //   res.header("Access-Control-Allow-Origin", "*");
+//   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
 //   next();
 // });
 
@@ -38,7 +39,7 @@ app.get("/post", async (req, res, next) => {
     if (category) {
       posts = await TechGeekDB.getPostsByCategory(user.email, category);
     } else {
-      posts = await TechGeekDB.getPosts(user.email);
+      posts = await TechGeekDB.getAllPosts();
     }
     return res.render("post.ejs", { user, posts });
   } catch (err) {
@@ -76,8 +77,9 @@ app.post("/api/login", async (req, res) => {
 });
 
 app.post("/api/post", async (req, res) => {
-  const { content, session, category } = req.body;
+  const { content, category } = req.body;
   console.log(req.body);
+  const session = req.cookies.session_key;
   // sessionからユーザー情報を取得
   const user = jwt.verify(session, "techgeek");
   console.log(user);
