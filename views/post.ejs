@@ -104,7 +104,7 @@
     //             <h3 class="post-user">${post.user_name}</h3>
     //             <small class="post-email">${post.user_email}</small><br />
     //             <small class="post-phone">${post.user_phone}</small><br />
-    //             <small class="post-date">${post.createdat}</small>
+    //             <small class="post-date">${post.created_at}</small>
     //           </div>
     //           <div class="post-right">
     //             <br />
@@ -137,7 +137,9 @@
     }
 
     /* post-right の中身をおしゃれに装飾 */
-    .post-right {}
+    .post-right {
+      flex-basis: 50%; /*エラー出るので書いてみた*/
+    }
 
     /* post-left の中身をおしゃれに装飾 */
     .post-left {

@@ -15,7 +15,7 @@ export const TechGeekDB = {
           phone VARCHAR(255) NOT NULL,
           email VARCHAR(255) NOT NULL,
           password VARCHAR(255) NOT NULL,
-          createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+          created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
         )
       `;
       this.ready = this.__query(query);
@@ -31,10 +31,10 @@ export const TechGeekDB = {
           id SERIAL PRIMARY KEY,
           user_name VARCHAR(255) NOT NULL,
           user_email VARCHAR(255) NOT NULL,
-          user_phone VARCHAR(255) NOT NULL,
+          user_phone VARCHAR(255) , 
           content VARCHAR(255) NOT NULL,
           category VARCHAR(255) NOT NULL,
-          createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+          createdat TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
         )
       `;
       this.ready = this.__query(query);
@@ -65,7 +65,7 @@ export const TechGeekDB = {
   },
   __query: function (sql, params = []) {
     const pool = new pg.Pool({
-      connectionString: "postgres://morimotoryuuji:@localhost:5432/security",     //process.env.DATABASE_URL,
+      connectionString: "postgres://hashibasakiko:@localhost:5432/sakikodb",     //process.env.DATABASE_URL,
       ssl: false //process.env.NODE_ENV == "development" ? false : { rejectUnauthorized: false }
     });
     return new Promise((resolve, reject) => {
@@ -83,7 +83,7 @@ export const TechGeekDB = {
     const query = `
       INSERT INTO users (name, phone, email, password)
       VALUES ($1, $2, $3, $4)
-      RETURNING id, name, phone, email, createdAt
+      RETURNING id, name, phone, email, created_at
     `;
     const result = await this.__query(query, [name, phone, email, password]);
     console.log(result.rows[0]);
@@ -112,7 +112,7 @@ export const TechGeekDB = {
     const query = `
       INSERT INTO posts (category, content, user_name, user_phone, user_email)
       VALUES ($1, $2, $3, $4, $5)
-      RETURNING id, category, content, user_name, user_phone, user_email, createdAt
+      RETURNING id, category, content, user_name, user_phone, user_email, createdat
     `;
     const result = await this.__query(query, [category, content, user_name, user_phone, user_email]);
     return result.rows[0];
@@ -159,7 +159,7 @@ export const TechGeekDB = {
       UPDATE posts
       SET category = $2, content = $3, user_name = $4, user_phone = $5, user_email = $6
       WHERE id = $1
-      RETURNING id, category, content, user_name, user_phone, user_email, createdAt
+      RETURNING id, category, content, user_name, user_phone, user_email, createdat
     `;
     const result = await this.__query(query, [id, category, content, user_name, user_phone, user_email]);
     return result.rows[0];

@@ -5,6 +5,7 @@ import { TechGeekDB } from "./techgeek-db.js";
 import cookieParser from "cookie-parser";
 import bcryptjs from "bcryptjs";
 import jwt from "jsonwebtoken";
+import escape from "escape-html"; // クロスサイトスクリプティング対策
 
 const app = express();
 const PORT = 3000;
@@ -78,12 +79,14 @@ app.post("/api/login", async (req, res) => {
 
 app.post("/api/post", async (req, res) => {
   const { content, category } = req.body;
+  const escapeContent = escape(content); //クロスサイトスクリプティング対策
   console.log(req.body);
   const session = req.cookies.session_key;
   // sessionからユーザー情報を取得
   const user = jwt.verify(session, "techgeek");
   console.log(user);
-  const post = await TechGeekDB.createPost(category, content, user.name, user.phone, user.email);
+  //const post = await TechGeekDB.createPost(category, content, user.name, user.phone, user.email);
+  const post = await TechGeekDB.createPost(category, escapeContent, user.name, user.phone, user.email);
   console.log({ post });
   return res.redirect("/post");
 });
