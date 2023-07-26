@@ -31,7 +31,7 @@ export const TechGeekDB = {
           id SERIAL PRIMARY KEY,
           user_name VARCHAR(255) NOT NULL,
           user_email VARCHAR(255) NOT NULL,
-          user_phone VARCHAR(255) , 
+          user_phone VARCHAR(255) , //NOT NULL削除してみた
           content VARCHAR(255) NOT NULL,
           category VARCHAR(255) NOT NULL,
           createdat TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -147,10 +147,11 @@ export const TechGeekDB = {
     await this.ready;
     const query = `
       SELECT * FROM posts
-      WHERE category = '${category}' AND user_email = '${user_email}'
+      WHERE category = $1 AND user_email = $2
     `;
     console.log(query);
-    const result = await this.__query(query);
+    const values = [category, user_email];//$1, $2にそれぞれの値を格納するための配列
+    const result = await this.__query(query, values); //queryにvaluesを渡す
     return result.rows;
   },
   updatePost: async function (id, category, content, user_name, user_phone, user_email) {
