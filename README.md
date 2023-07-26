@@ -17,3 +17,5 @@
   - 記事のタイトルと本文を入力するフォームを設置。
   - 自分が投稿した内容の一覧を確認できる# security
 # security
+  -  [XSS対策]escape-htmlライブラリをインストール。index.jsにて、/api/postというエンドポイントについて、投稿内容をエスケープ
+  -  [SQLインジェクション]getPostsByCategoryについて、 Category = $1 AND user_email = $2と変更
