@@ -30,6 +30,26 @@
       </div>
     </div>
   </main>
+  <script>
+    //クライアントサイドのJavaScriptがサーバからCSRFトークンを取得し、それを用いてセキュアなPOSTリクエストを送信する
+      fetch('/csrf-token')
+        .then(response => response.json())
+        .then(data => {
+          console.log("サーバーからのCSRF token: ", data.csrfToken);
+          const csrf = data.csrfToken;
+          fetch('/api/post', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'CSRF-Token': csrf
+            },
+            body: JSON.stringify({
+              content: "content",
+              category: "category"
+            })
+          });
+      });
+    </script> 
 </body>
 
 </html>

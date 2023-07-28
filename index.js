@@ -6,6 +6,7 @@ import cookieParser from "cookie-parser";
 import bcryptjs from "bcryptjs";
 import jwt from "jsonwebtoken";
 import escape from "escape-html"; // クロスサイトスクリプティング対策
+import csrf from "csurf"; // CSRF対策
 
 const app = express();
 const PORT = 3000;
@@ -16,6 +17,23 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.set("view engine", "ejs");
+
+//csrfProtectionというミドルウェア　cookieを使用してCSRFトークンを追跡することを示す
+const csrfProtection = csrf({ 
+  cookie: {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: true
+}});
+// ///csrf-tokenエンドポイントを呼び出してCSRFトークンを取得し、それを使用してフォームデータと一緒にPOSTリクエストを送信するようにする
+// //csrfProtectionミドルウェアを適用する。サーバがCSRFトークンを生成・検証する
+app.use(csrfProtection);
+app.get("/csrf-token", csrfProtection, (req, res) => {
+  res.json({ csrfToken: req.csrfToken() });
+  console.log("data.csrfToken:" , req.csrfToken());
+});
+
+
 
 // 全てのCORSリクエストを許可する
 // app.use((req, res, next) => {
@@ -73,7 +91,11 @@ app.post("/api/login", async (req, res) => {
   }
 
   const token = jwt.sign(user, "techgeek", { expiresIn: '1d' });
-  res.cookie("session_key", token, { maxAge: 1000 * 60 * 60 * 24 });
+  res.cookie("session_key", token, { 
+    maxAge: 1000 * 60 * 60 * 24,
+    httpOnly: true,//クッキーをJavaScriptからアクセスできないようにする（XSSによってセッションキーを盗まれないように）
+    secure: true, //セッションIDはHTTPSでのみ送信することで、中間者攻撃を防ぐ。HTTPS接続を前提とする設定なので環境に応じて設定を切り替える
+  });
   return res.redirect("/post");
 });
 
@@ -85,8 +107,8 @@ app.post("/api/post", async (req, res) => {
   // sessionからユーザー情報を取得
   const user = jwt.verify(session, "techgeek");
   console.log(user);
-  //const post = await TechGeekDB.createPost(category, content, user.name, user.phone, user.email);
-  const post = await TechGeekDB.createPost(category, escapeContent, user.name, user.phone, user.email);
+  const post = await TechGeekDB.createPost(category, content, user.name, user.phone, user.email);
+  //const post = await TechGeekDB.createPost(category, escapeContent, user.name, user.phone, user.email);
   console.log({ post });
   return res.redirect("/post");
 });

@@ -19,3 +19,14 @@
 # security
   -  [XSS対策]escape-htmlライブラリをインストール。index.jsにて、/api/postというエンドポイントについて、投稿内容をエスケープ
   -  [SQLインジェクション]getPostsByCategoryについて、 Category = $1 AND user_email = $2と変更
+  -  [セッションハイジャック]XSSによりセッションが盗まれる可能性があるため、cookieのsecure属性をtrueに設定。セッションIDを定期的にリフレッシュする,ユーザがログアウトするときや一定時間アクティビティがないときにはセッションを破棄する→すでに{ expiresIn:'1d' })となっており、対策済み
+  -  [CSRF]csurfミドルウェアを使ってCSRF対策をする。
+
+
+
+  <button onClick = "csrf();">不正</button>
+<script>
+function csrf(){
+fetch("/api/post", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({category:"HTML/CSS", content:"不正"})})
+}
+</script>
