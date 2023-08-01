@@ -7,6 +7,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>投稿画面</title>
   <link rel="stylesheet" href="css/style.css">
+
 </head>
 
 <body>
@@ -37,6 +38,7 @@
         <button type="submit">絞り込む</button>
       </form>
       <form method="post" action="/api/post">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
         <label for="category">カテゴリ</label>
         <select id="category" name="category" required>
           <option value="">選択してください</option>
@@ -51,6 +53,7 @@
         <textarea id="content" name="content" required></textarea>
 
 
+        
         <button type="submit">投稿</button>
       </form>
       <!-- 投稿した内容の一覧を表示 -->
@@ -124,6 +127,8 @@
       document.cookie = 'session_key=; max-age=0;'
       location.href = "/";
     }
+    //クライアントサイドのJavaScriptがサーバからCSRFトークンを取得し、それを用いてセキュアなPOSTリクエストを送信する
+    
   </script>
   <style>
     /* post の中身をおしゃれに装飾 */

@@ -6,7 +6,10 @@ import cookieParser from "cookie-parser";
 import bcryptjs from "bcryptjs";
 import jwt from "jsonwebtoken";
 import escape from "escape-html"; // クロスサイトスクリプティング対策
-import csrf from "csurf"; // CSRF対策
+//import csrf from "csrf"; // CSRF対策
+import crypto from 'crypto'; // CSRF対策
+import dotenv from "dotenv";
+dotenv.config();
 
 const app = express();
 const PORT = 3000;
@@ -18,22 +21,51 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.set("view engine", "ejs");
 
-//csrfProtectionというミドルウェア　cookieを使用してCSRFトークンを追跡することを示す
-const csrfProtection = csrf({ 
-  cookie: {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: true
-}});
-// ///csrf-tokenエンドポイントを呼び出してCSRFトークンを取得し、それを使用してフォームデータと一緒にPOSTリクエストを送信するようにする
-// //csrfProtectionミドルウェアを適用する。サーバがCSRFトークンを生成・検証する
-app.use(csrfProtection);
-app.get("/csrf-token", csrfProtection, (req, res) => {
-  res.json({ csrfToken: req.csrfToken() });
-  console.log("data.csrfToken:" , req.csrfToken());
-});
+const CRYPT_KEY = process.env.CRYPT_KEY;
+console.log("CRYPT_KEY", CRYPT_KEY);
+const InitializationVector_LENGTH = 16; // 初期化ベクトルの長さを指定する
+const ALGORITHM = 'aes192';//暗号化アルゴリズムを指定する
 
 
+//暗号化の関数
+function encrypt(text) {
+  //ランダムな文字列を生成
+  let InitializationVector = crypto.randomBytes(InitializationVector_LENGTH);
+  //生成したランダムな文字列をクッキーに保存する。
+  let cipher = crypto.createCipher(ALGORITHM, text);
+  //文字列を暗号化する
+  cipher.update(text, "utf8", "hex")
+  console.log({cipher, text})
+  return cipher.final('hex');
+  
+  //ランダムな初期化ベクトルを生成する「crypto.randomBytes () メソッドは、暗号的に適切に構築された人工ランダム データと、記述されたコード内で生成されるバイト数を生成するために使用されます。」
+  // let InitializationVector = crypto.randomBytes(InitializationVector_LENGTH);
+  // let cipher = crypto.createCipheriv(ALGORITHM, Buffer.from(CRYPT_KEY), InitializationVector);
+  // //暗号化処理を行う
+  // return InitializationVector.toString('hex') + ':' + clipher.update(text).toString('hex');
+}
+  //復号化の関数
+  function decrypt(text) {
+    // let textParts = text.split(':');
+    // let InitializationVector = Buffer.from(textParts.shift(), 'hex');
+    // let encryptedText = Buffer.from(textParts.join(':'), 'hex');
+    console.log("複合化:", { text })
+    let decipher = crypto.createDecipher(ALGORITHM, text);
+    decipher.update(text, "hex", "utf8")
+    console.log("複合化:", { decipher })
+    // hexに変換
+    return decipher.final('utf8');
+  }
+  
+  app.post('/process', function(req, res) {
+    const csrfTokenFromCookie = req.cookies.csrfToken; // トークンをクッキーから取得
+    const csrfTokenPost = decrypt(req.body._csrf); 
+    if (csrfTokenPost === csrfTokenFromCookie) {
+      res.status(200).json({ message: 'Content processed successfully' });
+    } else {
+      res.status(403).json({ error: 'Invalid CSRF token' });
+    }
+  });
 
 // 全てのCORSリクエストを許可する
 // app.use((req, res, next) => {
@@ -50,6 +82,10 @@ app.get("/post", async (req, res, next) => {
     return res.redirect("/login.html");
   }
   try {
+    const csrfToken = crypto.randomBytes(32).toString('hex'); // ランダムな文字列を生成
+    const encryptedToken = encrypt(csrfToken); // 暗号化
+    res.cookie('csrfToken', csrfToken, { httpOnly: true }); // cookieを httpOnly にした
+  
     const user = jwt.verify(token, "techgeek");
     req.user = user;
     const { category } = req.query;
@@ -60,7 +96,7 @@ app.get("/post", async (req, res, next) => {
     } else {
       posts = await TechGeekDB.getAllPosts();
     }
-    return res.render("post.ejs", { user, posts });
+    res.render("post.ejs", { user, posts, csrfToken: encryptedToken });
   } catch (err) {
     console.log(err);
     return res.redirect("/login.html");
@@ -100,7 +136,17 @@ app.post("/api/login", async (req, res) => {
 });
 
 app.post("/api/post", async (req, res) => {
-  const { content, category } = req.body;
+  const token = req.cookies.csrfToken;
+
+  const { content, category, _csrf } = req.body;
+  console.log("content, category, _csrf", {content, category, _csrf});
+  const csrfTokenPost = decrypt(_csrf);
+  console.log("トークンを表示：", csrfTokenPost, token);
+
+  if (csrfTokenPost !== token) {
+    return res.status(403).json({ error: 'Invalid CSRF token' });
+  }
+  
   const escapeContent = escape(content); //クロスサイトスクリプティング対策
   console.log(req.body);
   const session = req.cookies.session_key;
