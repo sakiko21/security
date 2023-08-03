@@ -38,7 +38,7 @@
         <button type="submit">絞り込む</button>
       </form>
       <form method="post" action="/api/post">
-        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <input type="hidden"  name="csrfToken" id="csrfToken" value="<%= csrfToken %>">
         <label for="category">カテゴリ</label>
         <select id="category" name="category" required>
           <option value="">選択してください</option>
@@ -91,44 +91,71 @@
     const searchParams = new URLSearchParams(window.location.search);
     const category = searchParams.get("category");
     const searchCategoryElement = document.getElementById("search_category");
+    const content = document.getElementById('contentInput').value;
+
     if (category) {
       searchCategoryElement.value = category;
     }
-    // fetch(`/api/posts${category ? `?category=${category}` : ""}`)
-    //   .then(res => res.json())
-    //   .then(posts => {
-    //     const postsElement = document.getElementById("posts");
-    //     posts.forEach(post => {
-    //       console.log(post);
-    //       const postElement = document.createElement("div");
-    //       postElement.innerHTML = `
-    //         <div class="post">
-    //           <div class="post-left">
-    //             <h3 class="post-user">${post.user_name}</h3>
-    //             <small class="post-email">${post.user_email}</small><br />
-    //             <small class="post-phone">${post.user_phone}</small><br />
-    //             <small class="post-date">${post.created_at}</small>
-    //           </div>
-    //           <div class="post-right">
-    //             <br />
-    //             <strong class="post-category">カテゴリ: ${post.category}</strong><br /><br />
-    //             <strong>投稿内容</strong>
-    //             <div class="post-content" id="post-content-${post.id}"></div>
-    //           </div>
-    //         </div>
-    //       `;
-    //       postsElement.appendChild(postElement);
-    //       const postContentElement = document.getElementById(`post-content-${post.id}`);
-    //       postContentElement.innerHTML = post.content;
-    //     });
-    //   });
-    // 
+    fetch(`/api/posts${category ? `?category=${category}` : ""}`)
+      .then(res => res.json())
+      .then(posts => {
+        const postsElement = document.getElementById("posts");
+        posts.forEach(post => {
+          console.log(post);
+          const postElement = document.createElement("div");
+          postElement.innerHTML = `
+            <div class="post">
+              <div class="post-left">
+                <h3 class="post-user">${post.user_name}</h3>
+                <small class="post-email">${post.user_email}</small><br />
+                <small class="post-phone">${post.user_phone}</small><br />
+                <small class="post-date">${post.created_at}</small>
+              </div>
+              <div class="post-right">
+                <br />
+                <strong class="post-category">カテゴリ: ${post.category}</strong><br /><br />
+                <strong>投稿内容</strong>
+                <div class="post-content" id="post-content-${post.id}"></div>
+              </div>
+            </div>
+          `;
+          postsElement.appendChild(postElement);
+          const postContentElement = document.getElementById(`post-content-${post.id}`);
+          postContentElement.innerHTML = post.content;
+        });
+      });
+    
     function logout() {
       document.cookie = 'session_key=; max-age=0;'
       location.href = "/";
     }
-    //クライアントサイドのJavaScriptがサーバからCSRFトークンを取得し、それを用いてセキュアなPOSTリクエストを送信する
-    
+    document.addEventListener('DOMContentLoaded', (event) => {
+    const csrfToken = document.getElementById('csrfToken').value;
+    console.log("ハッシュ化前のトークン：", csrfToken);
+    console.log("category:", category);
+    console.log("content:", content);
+    fetch('/api/post', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ csrfToken, category, content}),
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.error){
+          alert(data.error);
+        } else{
+          alert("投稿完了しました");
+        }
+      })
+    .catch(error => {
+      console.log('Error:', error);
+      alert("エラーが発生しました");
+    });
+  });
+
+
   </script>
   <style>
     /* post の中身をおしゃれに装飾 */
